@@ -134,10 +134,15 @@ const now = new Date();
 const defaultMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
 
 const C = {
-  bg: "#F7F8FC", surface: "#FFFFFF", border: "#D8DCE8",
+  bg: "#E8EBF2", surface: "#FFFFFF", border: "#D8DCE8",
   text: "#1A1D2E", muted: "#8892A4",
   success: "#10B981", danger: "#EF4444",
   more: "#2E8B57", less: "#E8721A",
+  headerBg: "#2D3142",
+  headerCard: "#3D4259",
+  headerBorder: "#4A506A",
+  headerText: "#FFFFFF",
+  headerMuted: "#A8B0C8",
 };
 
 function formatEur(val) {
@@ -230,6 +235,7 @@ export default function App() {
   const [form, setForm] = useState({ person:"Rui", description:"", category:"supermercado", amount:"", date:new Date().toISOString().split("T")[0] });
   const [editId, setEditId] = useState(null);
   const [tab, setTab] = useState("add");
+  const [listPerson, setListPerson] = useState("Rui");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
 
@@ -322,36 +328,36 @@ export default function App() {
     <div style={{fontFamily:"'Segoe UI',system-ui,sans-serif",background:C.bg,minHeight:"100vh",color:C.text,maxWidth:480,margin:"0 auto"}}>
 
       {/* HEADER */}
-      <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"18px 16px 0",position:"sticky",top:0,zIndex:10}}>
+      <div style={{background:C.headerBg,padding:"18px 16px 0",position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",justifyContent:"center",alignItems:"center",marginBottom:14,position:"relative"}}>
-          {saving && <span style={{position:"absolute",right:0,fontSize:11,color:C.muted}}>A guardar…</span>}
+          {saving && <span style={{position:"absolute",right:0,fontSize:11,color:C.headerMuted}}>A guardar…</span>}
           <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}
-            style={{background:C.surface,color:C.text,border:`1px solid ${C.border}`,borderRadius:10,padding:"8px 16px",fontSize:15,fontWeight:600,cursor:"pointer"}}>
+            style={{background:C.headerCard,color:C.headerText,border:`1px solid ${C.headerBorder}`,borderRadius:10,padding:"8px 16px",fontSize:15,fontWeight:600,cursor:"pointer"}}>
             {allMonths.map(m => <option key={m} value={m}>{parseMonth(m)}</option>)}
           </select>
         </div>
 
         {/* Totals */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
-          <TotalPill label="Rui" value={formatEur(totals.Rui)} valueColor={diff===0?C.text:totals.Rui>totals.Cláudia?C.more:C.less} />
-          <TotalPill label="Cláudia" value={formatEur(totals.Cláudia)} valueColor={diff===0?C.text:totals.Cláudia>totals.Rui?C.more:C.less} />
-          <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"8px 10px",textAlign:"center"}}>
+          <TotalPill label="Rui" value={formatEur(totals.Rui)} valueColor={diff===0?C.headerText:totals.Rui>totals.Cláudia?C.more:C.less} />
+          <TotalPill label="Cláudia" value={formatEur(totals.Cláudia)} valueColor={diff===0?C.headerText:totals.Cláudia>totals.Rui?C.more:C.less} />
+          <div style={{background:C.headerCard,border:`1px solid ${C.headerBorder}`,borderRadius:10,padding:"8px 10px",textAlign:"center"}}>
             <span style={{display:"block",fontSize:10,color:C.less,fontWeight:600,marginBottom:2,textTransform:"uppercase",letterSpacing:"0.04em"}}>A pagar</span>
-            <span style={{display:"block",fontSize:13,fontWeight:700,color:diff===0?C.success:C.text}}>
+            <span style={{display:"block",fontSize:13,fontWeight:700,color:diff===0?C.success:C.headerText}}>
               {diff===0 ? "Quits!" : formatEur(diff/2)}
             </span>
-            {diff>0 && <span style={{display:"block",fontSize:9,color:C.muted,marginTop:1}}>
+            {diff>0 && <span style={{display:"block",fontSize:9,color:C.headerMuted,marginTop:1}}>
               {diffWho==="Rui" ? "Cláudia → Rui" : "Rui → Cláudia"}
             </span>}
           </div>
         </div>
 
         {/* Tabs */}
-        <div style={{display:"flex",borderTop:`1px solid ${C.border}`,margin:"0 -16px"}}>
+        <div style={{display:"flex",borderTop:`1px solid ${C.headerBorder}`,margin:"0 -16px"}}>
           {[["add",editId?"Editar":"Adicionar"],["list","Lista"],["summary","Resumo"]].map(([key,label]) => (
             <button key={key} onClick={() => { setTab(key); if(key!=="add"){setEditId(null);setForm(f=>({...f,description:"",amount:""}));} }}
-              style={{flex:1,background:"transparent",border:"none",borderBottom:`2px solid ${tab===key?C.text:"transparent"}`,
-                color:tab===key?C.text:C.muted,padding:"11px 0",fontSize:13,fontWeight:tab===key?600:400,cursor:"pointer"}}>
+              style={{flex:1,background:"transparent",border:"none",borderBottom:`2px solid ${tab===key?C.headerText:"transparent"}`,
+                color:tab===key?C.headerText:C.headerMuted,padding:"11px 0",fontSize:13,fontWeight:tab===key?600:400,cursor:"pointer"}}>
               {label}
             </button>
           ))}
@@ -422,21 +428,32 @@ export default function App() {
         {/* LIST */}
         {tab==="list" && (
           <div>
+            {/* Person sub-tabs */}
+            <div style={{display:"flex",gap:8,marginBottom:12}}>
+              {[{key:"Rui",total:totals.Rui},{key:"Cláudia",total:totals.Cláudia}].map(({key,total}) => {
+                const active = listPerson===key;
+                return (
+                  <button key={key} onClick={() => setListPerson(key)}
+                    style={{flex:1,padding:"9px 0",borderRadius:10,border:`1.5px solid ${active?C.text:C.border}`,
+                      background:active?C.text:C.surface,color:active?"#fff":C.muted,
+                      fontSize:13,fontWeight:active?600:400,cursor:"pointer"}}>
+                    {key} · {formatEur(total)}
+                  </button>
+                );
+              })}
+            </div>
             {monthExpenses.length===0
               ? <div style={{textAlign:"center",color:C.muted,padding:"48px 20px",lineHeight:1.8,background:C.surface,borderRadius:14,border:`1px solid ${C.border}`}}>
                   Ainda não há gastos em {parseMonth(selectedMonth)}.<br/>Adiciona o primeiro!
                 </div>
-              : <div>
-                  {[{label:"Rui",items:ruiItems,total:totals.Rui},{label:"Cláudia",items:claudiaItems,total:totals.Cláudia}].map(({label,items,total}) => (
-                    <div key={label} style={{marginBottom:16}}>
-                      <h3 style={{fontSize:12,fontWeight:600,color:C.muted,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8,paddingBottom:6,borderBottom:`1px solid ${C.border}`}}>
-                        {label} · {formatEur(total)}
-                      </h3>
-                      {items.map(e => <ExpenseItem key={e.id} e={e} onEdit={handleEdit} onDelete={handleDelete}/>)}
-                      {items.length===0 && <p style={{color:C.muted,fontSize:12,padding:"6px 0"}}>Sem gastos</p>}
-                    </div>
-                  ))}
-                </div>
+              : (() => {
+                  const items = listPerson==="Rui" ? ruiItems : claudiaItems;
+                  return items.length===0
+                    ? <div style={{textAlign:"center",color:C.muted,padding:"32px 20px",background:C.surface,borderRadius:12,border:`1px solid ${C.border}`}}>
+                        Sem gastos de {listPerson} este mês.
+                      </div>
+                    : items.map(e => <ExpenseItem key={e.id} e={e} onEdit={handleEdit} onDelete={handleDelete}/>);
+                })()
             }
           </div>
         )}
@@ -569,9 +586,9 @@ export default function App() {
 
 function TotalPill({label,value,valueColor}) {
   return (
-    <div style={{background:"#fff",border:"1px solid #D8DCE8",borderRadius:10,padding:"8px 10px",textAlign:"center"}}>
-      <span style={{display:"block",fontSize:10,color:"#8892A4",fontWeight:600,marginBottom:2,textTransform:"uppercase",letterSpacing:"0.04em"}}>{label}</span>
-      <span style={{display:"block",fontSize:13,fontWeight:700,color:valueColor||"#1A1D2E"}}>{value}</span>
+    <div style={{background:"#3D4259",border:"1px solid #4A506A",borderRadius:10,padding:"8px 10px",textAlign:"center"}}>
+      <span style={{display:"block",fontSize:10,color:"#A8B0C8",fontWeight:600,marginBottom:2,textTransform:"uppercase",letterSpacing:"0.04em"}}>{label}</span>
+      <span style={{display:"block",fontSize:13,fontWeight:700,color:valueColor||"#FFFFFF"}}>{value}</span>
     </div>
   );
 }
@@ -601,4 +618,4 @@ function ExpenseItem({e,onEdit,onDelete}) {
 
 const card = {background:"#fff",borderRadius:12,padding:"14px",border:"1px solid #E8EBF2",marginBottom:10};
 const lbl = {display:"block",fontSize:12,color:"#8892A4",marginBottom:5,fontWeight:500};
-const inp = {width:"100%",background:"#F7F8FC",border:"1px solid #E8EBF2",borderRadius:8,color:"#1A1D2E",padding:"10px 12px",fontSize:14,marginBottom:12,boxSizing:"border-box",outline:"none"};
+const inp = {width:"100%",background:"#F0F2F7",border:"1px solid #D8DCE8",borderRadius:8,color:"#1A1D2E",padding:"10px 12px",fontSize:14,marginBottom:12,boxSizing:"border-box",outline:"none"};
