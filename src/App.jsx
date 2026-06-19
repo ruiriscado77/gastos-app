@@ -382,8 +382,8 @@ export default function App() {
         {/* LIST */}
         {tab==="list" && (
           <div>
-            {/* Person sub-tabs */}
-            <div style={{display:"flex",gap:8,marginBottom:12}}>
+            {/* Person sub-tabs — sticky */}
+            <div style={{display:"flex",gap:8,marginBottom:12,position:"sticky",top:0,background:C.bg,padding:"4px 0 8px",zIndex:5}}>
               {[{key:"Rui",total:totals.Rui},{key:"Cláudia",total:totals.Cláudia}].map(({key,total}) => {
                 const active = listPerson===key;
                 return (
