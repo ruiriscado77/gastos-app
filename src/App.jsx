@@ -234,10 +234,11 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
   const [form, setForm] = useState({ person:"Rui", description:"", category:"supermercado", amount:"", date:new Date().toISOString().split("T")[0] });
   const [editId, setEditId] = useState(null);
-  const [tab, setTab] = useState("add");
+  const [tab, setTab] = useState("list");
   const [listPerson, setListPerson] = useState("Rui");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     loadExpenses();
@@ -294,22 +295,34 @@ export default function App() {
   const ruiItems = monthExpenses.filter(e => e.person==="Rui").sort((a,b) => b.date.localeCompare(a.date));
   const claudiaItems = monthExpenses.filter(e => e.person==="Cláudia").sort((a,b) => b.date.localeCompare(a.date));
 
+  function openAdd() {
+    setForm({ person:"Rui", description:"", category:"supermercado", amount:"", date:new Date().toISOString().split("T")[0] });
+    setEditId(null);
+    setError("");
+    setModalOpen(true);
+  }
+
+  function closeModal() {
+    setModalOpen(false);
+    setEditId(null);
+    setError("");
+  }
+
   async function handleSubmit() {
     setError("");
     if (!form.description.trim()) { setError("Escreve uma descrição."); return; }
     if (!form.amount || isNaN(form.amount) || Number(form.amount) <= 0) { setError("Valor inválido."); return; }
     const entry = { ...form, amount: parseFloat(form.amount), id: editId || Date.now().toString() };
     await saveExpense(entry);
-    setEditId(null);
-    setForm({ person:form.person, description:"", category:"supermercado", amount:"", date:new Date().toISOString().split("T")[0] });
+    closeModal();
     showToast("Guardado!");
-    setTab("list");
   }
 
   function handleEdit(entry) {
     setForm({ person:entry.person, description:entry.description, category:entry.category, amount:String(entry.amount), date:entry.date });
     setEditId(entry.id);
-    setTab("add");
+    setError("");
+    setModalOpen(true);
   }
 
   async function handleDelete(id) {
@@ -354,8 +367,8 @@ export default function App() {
 
         {/* Tabs */}
         <div style={{display:"flex",borderTop:`1px solid ${C.headerBorder}`,margin:"0 -16px"}}>
-          {[["add",editId?"Editar":"Adicionar"],["list","Lista"],["summary","Resumo"]].map(([key,label]) => (
-            <button key={key} onClick={() => { setTab(key); if(key!=="add"){setEditId(null);setForm(f=>({...f,description:"",amount:""}));} }}
+          {[["list","Lista"],["summary","Resumo"]].map(([key,label]) => (
+            <button key={key} onClick={() => setTab(key)}
               style={{flex:1,background:"transparent",border:"none",borderBottom:`2px solid ${tab===key?C.headerText:"transparent"}`,
                 color:tab===key?C.headerText:C.headerMuted,padding:"11px 0",fontSize:13,fontWeight:tab===key?600:400,cursor:"pointer"}}>
               {label}
@@ -364,66 +377,7 @@ export default function App() {
         </div>
       </div>
 
-      <div style={{padding:12}}>
-
-        {/* ADD */}
-        {tab==="add" && (
-          <div style={card}>
-            <h2 style={{margin:"0 0 16px",fontSize:16,fontWeight:600}}>{editId?"Editar Despesa":"Nova Despesa"}</h2>
-            {error && <div style={{background:"#FEF2F2",border:`1px solid #FECACA`,borderRadius:8,padding:"8px 12px",color:C.danger,fontSize:13,marginBottom:12}}>{error}</div>}
-
-            <label style={lbl}>Quem pagou?</label>
-            <div style={{display:"flex",gap:8,marginBottom:14}}>
-              {["Rui","Cláudia"].map(p => (
-                <button key={p} onClick={() => setForm(f=>({...f,person:p}))}
-                  style={{flex:1,padding:"10px 0",borderRadius:10,border:`1.5px solid ${form.person===p?C.text:C.border}`,
-                    background:form.person===p?C.text:C.surface,
-                    color:form.person===p?"#fff":C.muted,
-                    fontSize:15,cursor:"pointer",fontWeight:form.person===p?600:400}}>
-                  {p}
-                </button>
-              ))}
-            </div>
-
-            <label style={lbl}>Descrição</label>
-            <input value={form.description} onChange={e => setForm(f=>({...f,description:e.target.value}))}
-              placeholder="Ex: Compras no Pingo Doce" style={inp} />
-
-            <label style={lbl}>Categoria</label>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:14}}>
-              {CATEGORIES.map(c => {
-                const sel = form.category === c.id;
-                return (
-                  <button key={c.id} onClick={() => setForm(f=>({...f,category:c.id}))}
-                    style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"8px 4px",borderRadius:10,
-                      border:`1.5px solid ${sel?C.text:C.border}`,
-                      background:sel?C.text:C.surface,
-                      cursor:"pointer"}}>
-                    <span style={{lineHeight:0}}><CatBadge cat={c.id} size={28} /></span>
-                    <span style={{fontSize:9,color:sel?"#fff":C.muted,fontWeight:sel?600:400,textAlign:"center",lineHeight:1.2}}>{c.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <label style={lbl}>Valor (€)</label>
-            <input type="number" min="0" step="0.01" value={form.amount}
-              onChange={e => setForm(f=>({...f,amount:e.target.value}))}
-              placeholder="0,00" style={inp} />
-
-            <label style={lbl}>Data</label>
-            <input type="date" value={form.date} onChange={e => setForm(f=>({...f,date:e.target.value}))} style={inp} />
-
-            <button onClick={handleSubmit}
-              style={{width:"100%",padding:"13px 0",borderRadius:10,border:"none",background:C.text,color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",marginBottom:8}}>
-              {editId?"Guardar Alterações":`Adicionar para ${form.person}`}
-            </button>
-            {editId && <button onClick={() => {setEditId(null);setForm(f=>({...f,description:"",amount:""}));}}
-              style={{width:"100%",padding:"11px 0",borderRadius:10,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:14,cursor:"pointer"}}>
-              Cancelar
-            </button>}
-          </div>
-        )}
+      <div style={{padding:12,paddingBottom:88}}>
 
         {/* LIST */}
         {tab==="list" && (
@@ -573,10 +527,87 @@ export default function App() {
         )}
       </div>
 
-      <p style={{textAlign:"center",color:C.muted,fontSize:11,padding:"12px 0 24px",opacity:0.5}}>Sincronizado em tempo real</p>
+      {/* FAB */}
+      <button onClick={openAdd}
+        style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",width:52,height:52,borderRadius:"50%",background:C.headerBg,border:"none",
+          cursor:"pointer",boxShadow:"0 4px 16px rgba(0,0,0,0.25)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:20,padding:0}}>
+        <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
+          <line x1="13" y1="4" x2="13" y2="22" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"/>
+          <line x1="4" y1="13" x2="22" y2="13" stroke="#fff" strokeWidth="3.5" strokeLinecap="round"/>
+        </svg>
+      </button>
+
+      {/* MODAL */}
+      {modalOpen && (
+        <div style={{position:"fixed",inset:0,zIndex:30,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+          <div onClick={closeModal} style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.4)"}}/>
+          <div style={{position:"relative",background:C.surface,borderRadius:"20px 20px 0 0",padding:"0 16px 32px",maxHeight:"90vh",overflowY:"auto",boxShadow:"0 -4px 24px rgba(0,0,0,0.15)"}}>
+            <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
+              <div style={{width:36,height:4,borderRadius:2,background:C.border}}/>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+              <h2 style={{margin:0,fontSize:16,fontWeight:600}}>{editId?"Editar Despesa":"Nova Despesa"}</h2>
+              <button onClick={closeModal} style={{background:"transparent",border:"none",fontSize:20,cursor:"pointer",color:C.muted,lineHeight:1}}>×</button>
+            </div>
+
+            {error && <div style={{background:"#FEF2F2",border:`1px solid #FECACA`,borderRadius:8,padding:"8px 12px",color:C.danger,fontSize:13,marginBottom:12}}>{error}</div>}
+
+            <label style={lbl}>Quem pagou?</label>
+            <div style={{display:"flex",gap:8,marginBottom:14}}>
+              {["Rui","Cláudia"].map(p => (
+                <button key={p} onClick={() => setForm(f=>({...f,person:p}))}
+                  style={{flex:1,padding:"10px 0",borderRadius:10,border:`1.5px solid ${form.person===p?C.text:C.border}`,
+                    background:form.person===p?C.text:C.surface,
+                    color:form.person===p?"#fff":C.muted,
+                    fontSize:15,cursor:"pointer",fontWeight:form.person===p?600:400}}>
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            <label style={lbl}>Descrição</label>
+            <input value={form.description} onChange={e => setForm(f=>({...f,description:e.target.value}))}
+              placeholder="Ex: Compras no Pingo Doce" style={inp} />
+
+            <label style={lbl}>Categoria</label>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginBottom:14}}>
+              {CATEGORIES.map(c => {
+                const sel = form.category === c.id;
+                return (
+                  <button key={c.id} onClick={() => setForm(f=>({...f,category:c.id}))}
+                    style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"8px 4px",borderRadius:10,
+                      border:`1.5px solid ${sel?C.text:C.border}`,
+                      background:sel?C.text:C.surface,
+                      cursor:"pointer"}}>
+                    <span style={{lineHeight:0}}><CatBadge cat={c.id} size={28} /></span>
+                    <span style={{fontSize:9,color:sel?"#fff":C.muted,fontWeight:sel?600:400,textAlign:"center",lineHeight:1.2}}>{c.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <label style={lbl}>Valor (€)</label>
+            <input type="number" min="0" step="0.01" value={form.amount}
+              onChange={e => setForm(f=>({...f,amount:e.target.value}))}
+              placeholder="0,00" style={inp} />
+
+            <label style={lbl}>Data</label>
+            <input type="date" value={form.date} onChange={e => setForm(f=>({...f,date:e.target.value}))} style={inp} />
+
+            <button onClick={handleSubmit}
+              style={{width:"100%",padding:"13px 0",borderRadius:10,border:"none",background:C.text,color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",marginBottom:8}}>
+              {editId?"Guardar Alterações":`Adicionar para ${form.person}`}
+            </button>
+            {editId && <button onClick={closeModal}
+              style={{width:"100%",padding:"11px 0",borderRadius:10,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:14,cursor:"pointer"}}>
+              Cancelar
+            </button>}
+          </div>
+        </div>
+      )}
 
       {toast && (
-        <div style={{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:C.text,color:"#fff",padding:"10px 20px",borderRadius:20,fontSize:14,fontWeight:500,boxShadow:"0 4px 20px rgba(0,0,0,0.15)",zIndex:999}}>
+        <div style={{position:"fixed",bottom:90,left:"50%",transform:"translateX(-50%)",background:C.text,color:"#fff",padding:"10px 20px",borderRadius:20,fontSize:14,fontWeight:500,boxShadow:"0 4px 20px rgba(0,0,0,0.15)",zIndex:40}}>
           {toast}
         </div>
       )}
