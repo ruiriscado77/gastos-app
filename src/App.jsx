@@ -375,15 +375,11 @@ export default function App() {
             </button>
           ))}
         </div>
-      </div>
 
-      <div style={{padding:12,paddingBottom:88}}>
-
-        {/* LIST */}
+        {/* Person sub-tabs — part of the sticky header, only on Lista */}
         {tab==="list" && (
-          <div>
-            {/* Person sub-tabs — sticky */}
-            <div style={{display:"flex",gap:8,marginBottom:12,position:"sticky",top:0,background:C.bg,padding:"4px 0 8px",zIndex:5}}>
+          <div style={{background:C.bg,margin:"0 -16px",padding:"12px 16px"}}>
+            <div style={{display:"flex",gap:8}}>
               {[{key:"Rui",total:totals.Rui},{key:"Cláudia",total:totals.Cláudia}].map(({key,total}) => {
                 const active = listPerson===key;
                 return (
@@ -396,6 +392,15 @@ export default function App() {
                 );
               })}
             </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{padding:12,paddingBottom:88}}>
+
+        {/* LIST */}
+        {tab==="list" && (
+          <div>
             {monthExpenses.length===0
               ? <div style={{textAlign:"center",color:C.muted,padding:"48px 20px",lineHeight:1.8,background:C.surface,borderRadius:14,border:`1px solid ${C.border}`}}>
                   Ainda não há gastos em {parseMonth(selectedMonth)}.<br/>Adiciona o primeiro!

@@ -1,6 +1,18 @@
-import { createClient } from '@supabase/supabase-js'
-
-const SUPABASE_URL = 'https://aihfcftppsvblpoqckep.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpaGZjZnRwcHN2Ymxwb3Fja2VwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNDkyNTMsImV4cCI6MjA5NjgyNTI1M30.3afTfqZHB2u9fFKMGf8Zo7YeDc2yX5ds8950ZG-YCfQ'
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Gastos · Rui & Cláudia</title>
+    <link rel="manifest" href="/manifest.json" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { background: #F7F8FC; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
